@@ -5,7 +5,7 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
-import com.sky.service.admin.DishService;
+import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+
+import static com.sky.constant.StatusConstant.ENABLE;
 
 @RestController
 @RequestMapping("admin/dish")
@@ -74,9 +76,10 @@ public class DishController {
 
     @GetMapping("list")
     @ApiOperation("根据分类id查询菜品")
-    public Result<List<Dish>> queryByCategoryId(Long categoryId) {
+    public Result<List<Dish>> list(Long categoryId) {
         log.info("根据分类id查询菜品");
-        List<Dish> dishes = dishService.queryByCategoryId(categoryId);
+        Dish dish = Dish.builder().categoryId(categoryId).status(ENABLE).build();
+        List<Dish> dishes = dishService.list(dish);
         return Result.success(dishes);
     }
 }

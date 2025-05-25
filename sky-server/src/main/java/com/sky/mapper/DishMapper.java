@@ -1,4 +1,4 @@
-package com.sky.mapper.admin;
+package com.sky.mapper;
 
 import com.github.pagehelper.Page;
 import com.sky.annotation.AutoFill;
@@ -43,12 +43,5 @@ public interface DishMapper {
     @AutoFill(OperationType.UPDATE)
     void update(Dish dish);
 
-    /**
-     * 根据categoryId查询菜品
-     *
-     * @param categoryId
-     * @return
-     */
-    @Select("select * from dish where category_id = #{categoryId}")
-    List<Dish> queryByCategoryId(Long categoryId);
+    List<Dish> query(Dish dish);
 }

@@ -1,4 +1,4 @@
-package com.sky.service.user;
+package com.sky.service;
 
 import com.sky.dto.UserLoginDTO;
 import com.sky.vo.UserLoginVO;

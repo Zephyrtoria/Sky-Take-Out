@@ -1,4 +1,4 @@
-package com.sky.service.impl.admin;
+package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -8,12 +8,12 @@ import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.entity.Setmeal;
 import com.sky.exception.DeletionNotAllowedException;
-import com.sky.mapper.admin.DishMapper;
-import com.sky.mapper.admin.FlavorMapper;
-import com.sky.mapper.admin.SetmealDishMapper;
-import com.sky.mapper.admin.SetmealMapper;
+import com.sky.mapper.DishMapper;
+import com.sky.mapper.FlavorMapper;
+import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
-import com.sky.service.admin.DishService;
+import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -194,7 +194,23 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
-    public List<Dish> queryByCategoryId(Long categoryId) {
-        return dishMapper.queryByCategoryId(categoryId);
+    @Transactional
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishes = dishMapper.query(dish);
+        List<DishVO> dishVOS = new ArrayList<>();
+
+        for (Dish d : dishes) {
+            List<DishFlavor> flavors = flavorMapper.getByDishId(d.getId());
+            DishVO dishVO = new DishVO();
+            BeanUtils.copyProperties(d, dishVO);
+            dishVO.setFlavors(flavors);
+            dishVOS.add(dishVO);
+        }
+        return dishVOS;
+    }
+
+    @Override
+    public List<Dish> list(Dish dish) {
+        return dishMapper.query(dish);
     }
 }

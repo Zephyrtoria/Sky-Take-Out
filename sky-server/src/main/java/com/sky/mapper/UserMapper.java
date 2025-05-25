@@ -1,4 +1,4 @@
-package com.sky.mapper.user;
+package com.sky.mapper;
 
 import com.sky.entity.User;
 import org.apache.ibatis.annotations.Mapper;

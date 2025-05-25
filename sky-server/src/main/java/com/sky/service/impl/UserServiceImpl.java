@@ -1,14 +1,14 @@
-package com.sky.service.impl.user;
+package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.sky.dto.UserLoginDTO;
 import com.sky.entity.User;
 import com.sky.exception.LoginFailedException;
-import com.sky.mapper.user.UserMapper;
+import com.sky.mapper.UserMapper;
 import com.sky.properties.JwtProperties;
 import com.sky.properties.WeChatProperties;
-import com.sky.service.user.UserService;
+import com.sky.service.UserService;
 import com.sky.utils.HttpClientUtil;
 import com.sky.utils.JwtUtil;
 import com.sky.vo.UserLoginVO;

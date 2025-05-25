@@ -1,4 +1,4 @@
-package com.sky.service.admin;
+package com.sky.service;
 
 public interface ShopService {
     Integer getStatus();

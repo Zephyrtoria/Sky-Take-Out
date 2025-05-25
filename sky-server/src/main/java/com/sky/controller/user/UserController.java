@@ -2,7 +2,7 @@ package com.sky.controller.user;
 
 import com.sky.dto.UserLoginDTO;
 import com.sky.result.Result;
-import com.sky.service.user.UserService;
+import com.sky.service.UserService;
 import com.sky.vo.UserLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

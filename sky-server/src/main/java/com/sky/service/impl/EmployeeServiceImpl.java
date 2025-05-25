@@ -1,4 +1,4 @@
-package com.sky.service.impl.admin;
+package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -12,9 +12,9 @@ import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
-import com.sky.mapper.admin.EmployeeMapper;
+import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
-import com.sky.service.admin.EmployeeService;
+import com.sky.service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;

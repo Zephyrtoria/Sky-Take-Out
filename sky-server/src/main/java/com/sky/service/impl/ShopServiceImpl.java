@@ -1,6 +1,6 @@
-package com.sky.service.impl.admin;
+package com.sky.service.impl;
 
-import com.sky.service.admin.ShopService;
+import com.sky.service.ShopService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
