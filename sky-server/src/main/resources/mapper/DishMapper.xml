@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.admin.DishMapper">
+    <!-- 插入结束后，会将生成的id值赋回给实体类 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into dish (name, category_id, price, image, description, status, create_time, update_time, create_user,
+                          update_user)
+        VALUES (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{status}, #{createTime}, #{updateTime},
+                #{createUser}, #{updateUser})
+    </insert>
+
+    <update id="update">
+        update dish
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="categoryId != null">
+                category_id = #{categoryId},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="image != null">
+                image = #{image},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        <where>
+            <if test="id != null">
+                id = #{id}
+            </if>
+        </where>
+    </update>
+    <delete id="deleteBatchByIds">
+        delete from dish
+        where id in
+        <foreach collection="ids" item="dishId" separator="," open="(" close=")">
+            #{dishId}
+        </foreach>
+    </delete>
+
+    <!-- 查询到categoryId需要再从类型表中获取名称 -->
+    <select id="pageQuery" resultType="com.sky.vo.DishVO">
+        select dish.*, c.name categoryName from dish
+        left join category c on dish.category_id = c.id
+        /*inner join dish_flavor df on dish.id = df.dish_id*/
+        <where>
+            <if test="name != null and name != ''">
+                and dish.name like concat('%', #{name}, '%')
+            </if>
+            <if test="categoryId != null and categoryId != ''">
+                and dish.category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and dish.status = #{status}
+            </if>
+        </where>
+        order by dish.create_time desc
+    </select>
+
+    <select id="getBatchByIds" resultType="com.sky.entity.Dish">
+        select *
+        from dish
+        where id in
+        <foreach collection="ids" item="dishId" separator="," open="(" close=")">
+            #{dishId}
+        </foreach>
+    </select>
+</mapper>
