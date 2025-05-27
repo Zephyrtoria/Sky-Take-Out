@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static com.sky.constant.StatusConstant.ENABLE;
+
 @RestController("userDishController")
 @RequestMapping("/user/dish")
 @Slf4j
@@ -32,9 +34,9 @@ public class DishController {
     @GetMapping("/list")
     @ApiOperation("根据分类id查询菜品")
     public Result<List<DishVO>> list(Long categoryId) {
-        Dish dish = new Dish();
-        dish.setCategoryId(categoryId);
-        dish.setStatus(StatusConstant.ENABLE);//查询起售中的菜品
+        Dish dish = Dish.builder()
+                .categoryId(categoryId)
+                .status(ENABLE).build();
 
         List<DishVO> list = dishService.listWithFlavor(dish);
 

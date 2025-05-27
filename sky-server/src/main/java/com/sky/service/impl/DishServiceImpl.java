@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.dto.DishDTO;
@@ -17,15 +18,18 @@ import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.sky.constant.MessageConstant.DISH_BE_RELATED_BY_SETMEAL;
 import static com.sky.constant.MessageConstant.DISH_ON_SALE;
+import static com.sky.constant.RedisConstant.DISH_CACHE_KEY;
 import static com.sky.constant.StatusConstant.DISABLE;
 import static com.sky.constant.StatusConstant.ENABLE;
 
@@ -44,6 +48,9 @@ public class DishServiceImpl implements DishService {
 
     @Resource
     private SetmealMapper setmealMapper;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -66,6 +73,9 @@ public class DishServiceImpl implements DishService {
             // 批量插入
             flavorMapper.insertBatch(flavors);
         }
+        // 删除缓存数据
+        String key = DISH_CACHE_KEY + dish.getCategoryId();
+        cleanCache(key);
     }
 
     /**
@@ -112,13 +122,16 @@ public class DishServiceImpl implements DishService {
 
         // 3. 删除口味表中的口味数据
         flavorMapper.deleteBatchByDishIds(ids);
+
+        // 4. 删除所有菜品缓存
+        cleanCache(DISH_CACHE_KEY + "*");
     }
 
     /**
      * 根据id查询菜品，同时返回关联的口味数据
      *
-     * @param id
-     * @return
+     * @param id 查询的id
+     * @return 查询到的数据
      */
     @Override
     public DishVO queryById(Long id) {
@@ -139,7 +152,7 @@ public class DishServiceImpl implements DishService {
     /**
      * 修改菜品信息和对应的口味数据
      *
-     * @param dishDTO
+     * @param dishDTO 菜品修改DTO
      */
     @Override
     public void updateWithFlavor(DishDTO dishDTO) {
@@ -164,13 +177,15 @@ public class DishServiceImpl implements DishService {
             flavorMapper.insertBatch(flavors);
         }
 
+        // 3. 删除所有菜品缓存
+        cleanCache(DISH_CACHE_KEY + "*");
     }
 
     /**
      * 修改菜品状态
      *
-     * @param status
-     * @param id
+     * @param status 将要设置的状态
+     * @param id     菜品id
      */
     @Override
     public void changeStatus(Integer status, Long id) {
@@ -191,26 +206,53 @@ public class DishServiceImpl implements DishService {
                 }
             }
         }
+        // 删除所有菜品缓存
+        cleanCache(DISH_CACHE_KEY + "*");
     }
 
     @Override
     @Transactional
     public List<DishVO> listWithFlavor(Dish dish) {
-        List<Dish> dishes = dishMapper.query(dish);
-        List<DishVO> dishVOS = new ArrayList<>();
+        // 1. 先查询 Redis 中是否有对应缓存，根据 categoryId 来存储
+        String key = DISH_CACHE_KEY + dish.getCategoryId();
+        List<String> strDishVO = stringRedisTemplate.opsForList().range(key, 0, -1);
+        List<DishVO> list = new ArrayList<>();
+        if (strDishVO != null && !strDishVO.isEmpty()) {
+            strDishVO.forEach(each -> list.add(JSONUtil.toBean(each, DishVO.class)));
+            return list;
+        }
 
+        // 2. 不存在，再查询数据库
+        List<Dish> dishes = dishMapper.query(dish);
         for (Dish d : dishes) {
             List<DishFlavor> flavors = flavorMapper.getByDishId(d.getId());
             DishVO dishVO = new DishVO();
             BeanUtils.copyProperties(d, dishVO);
             dishVO.setFlavors(flavors);
-            dishVOS.add(dishVO);
+            list.add(dishVO);
         }
-        return dishVOS;
+
+        // 3. 将数据库查询到的数据放入 Redis
+        list.forEach(each -> stringRedisTemplate
+                .opsForList()
+                .rightPush(key, JSONUtil.toJsonStr(each)));
+
+        return list;
     }
 
     @Override
     public List<Dish> list(Dish dish) {
         return dishMapper.query(dish);
+    }
+
+    /**
+     * 清除缓存
+     *
+     * @param pattern 需要清理缓存的前缀
+     */
+    private void cleanCache(String pattern) {
+        Set<String> keys = stringRedisTemplate.keys(pattern);
+        log.info("正在清除Redis缓存: {}", keys);
+        stringRedisTemplate.delete(keys);
     }
 }
