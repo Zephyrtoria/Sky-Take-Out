@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.ShoppingCartMapper">
+    <update id="update" parameterType="com.sky.entity.ShoppingCart">
+        update shopping_cart set number = #{number}
+        where
+            user_id = #{userId}
+            <if test="dishId != null">
+                and dish_id = #{dishId}
+            </if>
+            <if test="setmealId != null">
+                and setmeal_id = #{setmealId}
+            </if>
+            <if test="dishFlavor != null">
+                and dish_flavor = #{dishFlavor}
+            </if>
+    </update>
+    <delete id="deleteByBatch" parameterType="com.sky.entity.ShoppingCart">
+        delete from shopping_cart
+        where user_id = #{userId}
+        <if test="dishId != null">
+            and dish_id = #{dishId}
+        </if>
+        <if test="setmealId != null">
+            and setmeal_id = #{setmealId}
+        </if>
+        <if test="dishFlavor != null">
+            and dish_flavor = #{dishFlavor}
+        </if>
+    </delete>
+
+    <select id="query" resultType="com.sky.entity.ShoppingCart">
+        select * from shopping_cart
+        <where>
+            user_id = #{userId}
+            <if test="dishId != null">
+                and dish_id = #{dishId}
+            </if>
+            <if test="setmealId != null">
+                and setmeal_id = #{setmealId}
+            </if>
+            <if test="dishFlavor != null">
+                and dish_flavor = #{dishFlavor}
+            </if>
+        </where>
+    </select>
+</mapper>
