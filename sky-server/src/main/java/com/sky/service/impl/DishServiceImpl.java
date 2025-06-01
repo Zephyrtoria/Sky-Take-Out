@@ -29,7 +29,7 @@ import java.util.Set;
 
 import static com.sky.constant.MessageConstant.DISH_BE_RELATED_BY_SETMEAL;
 import static com.sky.constant.MessageConstant.DISH_ON_SALE;
-import static com.sky.constant.RedisConstant.DISH_CACHE_KEY;
+import static com.sky.constant.CacheConstant.DISH_CACHE_KEY;
 import static com.sky.constant.StatusConstant.DISABLE;
 import static com.sky.constant.StatusConstant.ENABLE;
 
