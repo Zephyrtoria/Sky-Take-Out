@@ -16,7 +16,7 @@ import javax.annotation.Resource;
 
 @RestController
 @RequestMapping("user/user")
-@Api(tags = "用户端用户相关接口")
+@Api(tags = "C端-用户相关接口")
 @Slf4j
 public class UserController {
 

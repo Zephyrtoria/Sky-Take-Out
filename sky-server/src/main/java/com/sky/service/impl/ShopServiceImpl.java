@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
-import static com.sky.constant.RedisConstant.SHOP_STATUS_KEY;
+import static com.sky.constant.CacheConstant.SHOP_STATUS_KEY;
 import static com.sky.constant.StatusConstant.DISABLE;
 
 @Service

@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
-import static com.sky.constant.RedisConstant.SHOP_STATUS_KEY;
+import static com.sky.constant.CacheConstant.SHOP_STATUS_KEY;
 import static com.sky.constant.StatusConstant.DISABLE;
 
 // 注意需要设置别名，否则admin和user下的ShopController会产生冲突
 @RestController("userShopController")
 @RequestMapping("user/shop")
-@Api(tags = "用户端商店相关接口")
+@Api(tags = "C端-商店相关接口")
 @Slf4j
 public class ShopController {
 
