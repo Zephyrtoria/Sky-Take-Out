@@ -57,4 +57,21 @@
         </set>
         where number = #{number}
     </update>
+
+    <select id="pageQuery" resultType="com.sky.vo.OrderVO">
+        select * from orders
+        <where>
+            user_id = #{userId}
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="number != null">
+                and number = #{number}
+            </if>
+            <if test="phone != null">
+                and phone = #{phone}
+            </if>
+        </where>
+        order by order_time desc
+    </select>
 </mapper>

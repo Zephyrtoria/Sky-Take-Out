@@ -1,8 +1,12 @@
 package com.sky.mapper;
 
+import com.github.pagehelper.Page;
 import com.sky.entity.Orders;
+import com.sky.vo.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface OrderMapper {
@@ -17,4 +21,9 @@ public interface OrderMapper {
     void update(Orders orders);
 
     void updateByNumber(Orders orders);
+
+    @Select("select * from orders where id = #{id}")
+    Orders getById(Long id);
+
+    Page<OrderVO> pageQuery(Orders query);
 }

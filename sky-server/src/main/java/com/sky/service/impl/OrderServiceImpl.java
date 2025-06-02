@@ -2,7 +2,10 @@ package com.sky.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
@@ -10,11 +13,13 @@ import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.service.UserService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -148,5 +153,86 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
+    public OrderVO getDetail(Long id) {
+        // 1. 获取Orders
+        Orders orders = orderMapper.getById(id);
+
+        // 2. 获取OrderDetail
+        List<OrderDetail> list = orderDetailMapper.getByOrderId(id);
+
+        OrderVO orderVO = new OrderVO();
+        BeanUtil.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(list);
+        return orderVO;
+    }
+
+    @Override
+    @Transactional
+    public PageResult history(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Orders query = Orders.builder()
+                .number(ordersPageQueryDTO.getNumber())
+                .userId(BaseContext.getCurrentId())
+                .phone(ordersPageQueryDTO.getPhone())
+                .status(ordersPageQueryDTO.getStatus())
+                .build();
+        Page<OrderVO> ordersPage = orderMapper.pageQuery(query);
+        long total = ordersPage.getTotal();
+        List<OrderVO> result = ordersPage.getResult();
+        for (OrderVO vo : result) {
+            vo.setOrderDetailList(orderDetailMapper.getByOrderId(vo.getId()));
+        }
+        return new PageResult(total, result);
+    }
+
+    @Override
+    @Transactional
+    public void cancel(Long id, String cancelReason) {
+        // 1. 查询订单
+        Orders orders = orderMapper.getById(id);
+        // 应当再加上检测功能，但是如果是正常通过小程序获取则不需要
+
+        // 2. 设置订单状态
+        orders.setStatus(Orders.CANCELLED);
+        // 3. 设置取消原因
+        orders.setCancelReason(cancelReason);
+        // 4. 设置取消时间
+        orders.setCancelTime(LocalDateTime.now());
+
+        // 5. 更新
+        orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
+    public void repetition(Long id) {
+        // 1. 获取旧订单
+        Orders orders = orderMapper.getById(id);
+        // 2. 获取旧订单对应的所有菜品
+        Long userId = BaseContext.getCurrentId();
+        Long orderId = orders.getId();
+        List<OrderDetail> list = orderDetailMapper.getByOrderId(orderId);
+
+        // 3. 将菜品加入购物车
+        List<ShoppingCart> shoppingCarts = new ArrayList<>();
+        for (OrderDetail each : list) {
+            ShoppingCart cart = ShoppingCart.builder()
+                    .userId(userId)
+                    .dishId(each.getDishId())
+                    .dishFlavor(each.getDishFlavor())
+                    .setmealId(each.getSetmealId())
+                    .image(each.getImage())
+                    .name(each.getName())
+                    .amount(each.getAmount())
+                    .number(each.getNumber())
+                    .createTime(LocalDateTime.now())
+                    .build();
+            shoppingCarts.add(cart);
+        }
+        shoppingCartMapper.insertBatch(shoppingCarts);
     }
 }
