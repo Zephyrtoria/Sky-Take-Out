@@ -5,9 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
@@ -209,6 +207,54 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        // 1. 获取订单
+        Orders orders = orderMapper.getById(ordersConfirmDTO.getId());
+        orders.setStatus(Orders.CONFIRMED);
+
+        // 2. 修改订单状态
+        orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        // 1. 获取订单
+        Orders orders = orderMapper.getById(ordersRejectionDTO.getId());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        // 退款
+        orders.setPayStatus(Orders.REFUND);
+        // 2. 修改订单状态
+        orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
+    public void delivery(Long id) {
+        // 1. 获取订单
+        Orders orders = orderMapper.getById(id);
+        orders.setDeliveryStatus(Orders.DELIVERY_IN_PROGRESS);
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
+
+        // 2. 修改状态
+        orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
+    public void complete(Long id) {
+        Orders orders = orderMapper.getById(id);
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+
+        // 2. 修改状态
+        orderMapper.update(orders);
+    }
+
+    @Override
+    @Transactional
     public void cancel(Long id, String cancelReason) {
         // 1. 查询订单
         Orders orders = orderMapper.getById(id);
@@ -220,9 +266,11 @@ public class OrderServiceImpl implements OrderService {
         orders.setCancelReason(cancelReason);
         // 4. 设置取消时间
         orders.setCancelTime(LocalDateTime.now());
-
+        // 退款
+        orders.setPayStatus(Orders.REFUND);
         // 5. 更新
         orderMapper.update(orders);
+
     }
 
     @Override
