@@ -10,25 +10,23 @@ import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
-import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
-import com.sky.service.UserService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.sky.constant.MessageConstant.ADDRESS_BOOK_IS_NULL;
 import static com.sky.constant.MessageConstant.SHOPPING_CART_IS_NULL;
@@ -175,18 +173,38 @@ public class OrderServiceImpl implements OrderService {
     public PageResult history(OrdersPageQueryDTO ordersPageQueryDTO) {
         PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
         Orders query = Orders.builder()
-                .number(ordersPageQueryDTO.getNumber())
                 .userId(BaseContext.getCurrentId())
-                .phone(ordersPageQueryDTO.getPhone())
                 .status(ordersPageQueryDTO.getStatus())
                 .build();
-        Page<OrderVO> ordersPage = orderMapper.pageQuery(query);
+        Page<OrderVO> ordersPage = orderMapper.history(query);
         long total = ordersPage.getTotal();
         List<OrderVO> result = ordersPage.getResult();
         for (OrderVO vo : result) {
             vo.setOrderDetailList(orderDetailMapper.getByOrderId(vo.getId()));
         }
         return new PageResult(total, result);
+    }
+
+    @Override
+    @Transactional
+    public PageResult search(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        Page<OrderVO> ordersPage = orderMapper.search(ordersPageQueryDTO);
+        long total = ordersPage.getTotal();
+        List<OrderVO> result = ordersPage.getResult();
+        for (OrderVO vo : result) {
+            List<OrderDetail> list = orderDetailMapper.getByOrderId(vo.getId());
+            String orderDishes = list.stream().map(OrderDetail::getName).collect(Collectors.joining(","));
+            vo.setOrderDishes(orderDishes);
+        }
+
+        return new PageResult(total, result);
+    }
+
+    @Override
+    public OrderStatisticsVO statistics() {
+        return orderMapper.statistics();
     }
 
     @Override
