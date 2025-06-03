@@ -98,4 +98,5 @@
                count(case when status = 4 then 1 end) as deliveryInProgress
         from orders
     </select>
+
 </mapper>
