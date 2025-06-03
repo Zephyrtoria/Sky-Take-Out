@@ -2,19 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.sky.mapper.ShoppingCartMapper">
+    <insert id="insertBatch">
+        insert into shopping_cart (name, image, user_id, dish_id, setmeal_id, dish_flavor, number, amount, create_time)
+        VALUES
+        <foreach collection="shoppingCarts" item="c" separator=",">
+            (#{c.name}, #{c.image}, #{c.userId}, #{c.dishId}, #{c.setmealId}, #{c.dishFlavor}, #{c.number}, #{c.amount}, #{c.createTime})
+        </foreach>
+    </insert>
     <update id="update" parameterType="com.sky.entity.ShoppingCart">
         update shopping_cart set number = #{number}
         where
-            user_id = #{userId}
-            <if test="dishId != null">
-                and dish_id = #{dishId}
-            </if>
-            <if test="setmealId != null">
-                and setmeal_id = #{setmealId}
-            </if>
-            <if test="dishFlavor != null">
-                and dish_flavor = #{dishFlavor}
-            </if>
+        user_id = #{userId}
+        <if test="dishId != null">
+            and dish_id = #{dishId}
+        </if>
+        <if test="setmealId != null">
+            and setmeal_id = #{setmealId}
+        </if>
+        <if test="dishFlavor != null">
+            and dish_flavor = #{dishFlavor}
+        </if>
     </update>
     <delete id="deleteByBatch" parameterType="com.sky.entity.ShoppingCart">
         delete from shopping_cart
